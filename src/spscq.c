@@ -1,4 +1,4 @@
-#include "lib.h"
+#include "spscq.h"
 #include <stdlib.h>
 #include <stdio.h>
 

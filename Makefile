@@ -1,8 +1,8 @@
-test: lib.o
-	gcc test.c lib.o -o test.out -g -Wall && ./test.out
+test: spscq.o test/test.c
+	gcc test/test.c spscq.o -I src/ -o test.out -g -Wall && ./test.out
 
-lib.o: lib.c lib.h
-	gcc -c lib.c -g
+spscq.o: src/spscq.c src/spscq.h
+	gcc -c $< -I src/ -g
 
 clean:
 	rm -rf *.o *.out
