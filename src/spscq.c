@@ -24,7 +24,7 @@ spscq_handle_t spscq_init(size_t qsize) {
     return queue;
 }
 
-bool spscq_push(spscq_handle_t q, DataT e) {
+bool spscq_enqueue(spscq_handle_t q, DataT e) {
     // is the queue full? return an error
     if ((q->head - q->tail) == q->cap) {
         return false;
@@ -34,7 +34,7 @@ bool spscq_push(spscq_handle_t q, DataT e) {
     return true;
 }
 
-bool spscq_pop(spscq_handle_t q, DataT* e) {
+bool spscq_dequeue(spscq_handle_t q, DataT* e) {
     // is the queue empty? return an error
     if ((q->head - q->tail) == 0) {
         return false;

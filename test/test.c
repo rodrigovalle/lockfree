@@ -25,17 +25,17 @@ void print_queue(spscq_handle_t queue) {
 void print_queue_struct(spscq_handle_t queue) {
     char* base = (char*) queue;
     printf("offsets\n");
-    printf("cap: %ld\n", ((char*) &queue->cap) - base);
-    printf("mask: %ld\n", ((char*) &queue->mask) - base);
-    printf("head: %ld\n", ((char*) &queue->head) - base);
-    printf("tail: %ld\n", ((char*) &queue->tail) - base);
-    printf("buf: %ld\n", ((char*) &queue->buf) - base);
+    printf("cap: %td\n", ((char*) &queue->cap) - base);
+    printf("mask: %td\n", ((char*) &queue->mask) - base);
+    printf("head: %td\n", ((char*) &queue->head) - base);
+    printf("tail: %td\n", ((char*) &queue->tail) - base);
+    printf("buf: %td\n", ((char*) &queue->buf) - base);
 }
 
 void test_push() {
     spscq_handle_t queue = spscq_init(1024);
     for (int64_t i = 1; i <= 100; i++) {
-        if (!spscq_push(queue, i)) {
+        if (!spscq_enqueue(queue, i)) {
             printf("failed to push element %ld\n", i);
             print_queue(queue);
             break;
@@ -46,29 +46,29 @@ void test_push() {
 void test_overflow() {
     spscq_handle_t queue = spscq_init(1024);
     for (int64_t i = 1; i <= 1024; i++) {
-        if (!spscq_push(queue, i)) {
+        if (!spscq_enqueue(queue, i)) {
             printf("failed to push element %ld\n", i);
             print_queue(queue);
             break;
         }
     }
     int64_t j = 1024;
-    assert(!spscq_push(queue, j));
+    assert(!spscq_enqueue(queue, j));
 }
 
 void test_pop() {
     spscq_handle_t queue = spscq_init(1024);
-    spscq_push(queue, 0);
-    spscq_push(queue, 1);
+    spscq_enqueue(queue, 0);
+    spscq_enqueue(queue, 1);
 
     long s, t, u;
-    spscq_pop(queue, &s);
+    spscq_dequeue(queue, &s);
     assert(s == 0);
 
-    spscq_pop(queue, &t);
+    spscq_dequeue(queue, &t);
     assert(t == 1);
 
-    assert(!spscq_pop(queue, &u));
+    assert(!spscq_dequeue(queue, &u));
 }
 
 void test_wraparound() {
@@ -76,25 +76,25 @@ void test_wraparound() {
 
     // move the head and tail pointers past the start of the queue
     int64_t disposal;
-    spscq_push(queue, 0);
-    spscq_push(queue, 1);
-    spscq_pop(queue, &disposal);
-    spscq_pop(queue, &disposal);
+    spscq_enqueue(queue, 0);
+    spscq_enqueue(queue, 1);
+    spscq_dequeue(queue, &disposal);
+    spscq_dequeue(queue, &disposal);
 
     // fill the queue
     for (int64_t i = 0; i < 16; i++) {
-        assert(spscq_push(queue, i));
+        assert(spscq_enqueue(queue, i));
     }
-    assert(!spscq_push(queue, 0));
+    assert(!spscq_enqueue(queue, 0));
 
     // empty the queue
     for (int64_t i = 0; i < 16; i++) {
         int64_t val;
-        assert(spscq_pop(queue, &val));
+        assert(spscq_dequeue(queue, &val));
         assert(val == i);
     }
-    assert(!spscq_pop(queue, &disposal));
-    assert(spscq_push(queue, 0));
+    assert(!spscq_dequeue(queue, &disposal));
+    assert(spscq_enqueue(queue, 0));
 }
 
 // what happens when head and tail overflow and wraparound?
@@ -106,11 +106,11 @@ void test_head_tail_wrapping() {
 
     // fill the queue, causing head to wrap
     for (int i = 0; i < (1024 - 100); i++) {
-        spscq_push(queue, 0);
+        spscq_enqueue(queue, 0);
     }
 
     // now the queue is full, we expect this to fail
-    assert(!spscq_push(queue, 0));
+    assert(!spscq_enqueue(queue, 0));
 }
 
 int main() {
